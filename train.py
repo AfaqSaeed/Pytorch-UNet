@@ -19,9 +19,9 @@ from unet import UNet
 from utils.data_loading import BasicDataset, CarvanaDataset
 from utils.dice_score import dice_loss
 
-dir_img = Path('./data/imgs/')
-dir_mask = Path('./data/masks/')
-dir_checkpoint = Path('./checkpoints/')
+dir_img = Path(r'C:\Study\Sensor-Simulation-Project\Pytorch-UNet\data\imgs')
+dir_mask = Path(r'C:\Study\Sensor-Simulation-Project\Pytorch-UNet\data\masks')
+dir_checkpoint = Path(r'C:\Study\Sensor-Simulation-Project\Pytorch-UNet\checkpoints')
 
 
 def train_model(
@@ -78,7 +78,7 @@ def train_model(
                               lr=learning_rate, weight_decay=weight_decay, momentum=momentum, foreach=True)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=5)  # goal: maximize Dice score
     grad_scaler = torch.cuda.amp.GradScaler(enabled=amp)
-    criterion = nn.CrossEntropyLoss() if model.n_classes > 1 else nn.BCEWithLogitsLoss()
+    criterion = nn.L1Loss() 
     global_step = 0
 
     # 5. Begin training
@@ -95,20 +95,13 @@ def train_model(
                     'the images are loaded correctly.'
 
                 images = images.to(device=device, dtype=torch.float32, memory_format=torch.channels_last)
-                true_masks = true_masks.to(device=device, dtype=torch.long)
+                true_masks = true_masks.to(device=device, dtype=torch.uint8)
 
                 with torch.autocast(device.type if device.type != 'mps' else 'cpu', enabled=amp):
                     masks_pred = model(images)
-                    if model.n_classes == 1:
-                        loss = criterion(masks_pred.squeeze(1), true_masks.float())
-                        loss += dice_loss(F.sigmoid(masks_pred.squeeze(1)), true_masks.float(), multiclass=False)
-                    else:
-                        loss = criterion(masks_pred, true_masks)
-                        loss += dice_loss(
-                            F.softmax(masks_pred, dim=1).float(),
-                            F.one_hot(true_masks, model.n_classes).permute(0, 3, 1, 2).float(),
-                            multiclass=True
-                        )
+                        
+                    loss = criterion(masks_pred, true_masks)
+                    
 
                 optimizer.zero_grad(set_to_none=True)
                 grad_scaler.scale(loss).backward()
@@ -194,7 +187,7 @@ if __name__ == '__main__':
     # Change here to adapt to your data
     # n_channels=3 for RGB images
     # n_classes is the number of probabilities you want to get per pixel
-    model = UNet(n_channels=3, n_classes=args.classes, bilinear=args.bilinear)
+    model = UNet(n_channels=1, n_classes=args.classes, bilinear=args.bilinear)
     model = model.to(memory_format=torch.channels_last)
 
     logging.info(f'Network:\n'
