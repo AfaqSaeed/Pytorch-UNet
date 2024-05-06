@@ -9,7 +9,7 @@ criterion = torch.nn.L1Loss()
 def evaluate(net, dataloader, device, amp):
     net.eval()
     num_val_batches = len(dataloader)
-    dice_score = 0
+    loss = 0
 
     # iterate over the validation set
     with torch.autocast(device.type if device.type != 'mps' else 'cpu', enabled=amp):
@@ -28,4 +28,4 @@ def evaluate(net, dataloader, device, amp):
             loss = criterion(mask_pred,mask_true)
 
     net.train()
-    return dice_score / max(num_val_batches, 1)
+    return loss / max(num_val_batches, 1)
