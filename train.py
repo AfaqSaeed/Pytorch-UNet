@@ -19,9 +19,9 @@ from unet import UNet
 from utils.data_loading import BasicDataset, CarvanaDataset
 from utils.dice_score import dice_loss
 
-dir_img = Path(r'C:\Study\Sensor-Simulation-Project\Pytorch-UNet\data\imgs')
-dir_mask = Path(r'C:\Study\Sensor-Simulation-Project\Pytorch-UNet\data\masks')
-dir_checkpoint = Path(r'C:\Study\Sensor-Simulation-Project\Pytorch-UNet\checkpoints')
+dir_img = Path(r'./data/imgs')
+dir_mask = Path(r'./data/masks')
+dir_checkpoint = Path(r'./checkpoints')
 
 
 def train_model(
