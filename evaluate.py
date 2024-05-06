@@ -25,7 +25,7 @@ def evaluate(net, dataloader, device, amp):
 
             # convert to one-hot format
             # compute the Dice score, ignoring background
-            loss += criterion(mask_pred,mask_true)
+            loss = criterion(mask_pred,mask_true)
 
     net.train()
     return dice_score / max(num_val_batches, 1)
